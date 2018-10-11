@@ -11,7 +11,15 @@ body {
 
 /* CUSTOMIZE THE CAROUSEL
 -------------------------------------------------- */
-
+.navbar {
+  background-color: #28447a;
+  justify-content: space-between;
+  padding-right: 4rem;
+}
+.dropdown a, .dropdown .btn {
+  background-color: #fff;
+  color: #28447a;
+}
 /* Carousel base class */
 .carousel {
   margin-bottom: 4rem;
