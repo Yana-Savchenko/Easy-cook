@@ -25,6 +25,10 @@ module.exports = (app) => {
       console.log(user.dataValues);
       res.render("home.hbs", {
         userName: user.firstName + ' ' + user.lastName,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        age: user.age,
       });
     });
 
