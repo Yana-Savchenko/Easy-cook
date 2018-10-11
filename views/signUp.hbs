@@ -11,14 +11,14 @@
     <title>Easy cook - sign up</title>
 
     <!-- Bootstrap core CSS -->
-    <link href="./js/bootstrap.min.css" rel="stylesheet">
+    <link href="/js/bootstrap.min.css" rel="stylesheet">
 
     <!-- Custom styles for this template -->
-    <link href="./styles/signup.css" rel="stylesheet">
+    <link href="/styles/signup.css" rel="stylesheet">
   </head>
 
   <body class="text-center">
-    <form class="form-signup" action="/sign-up" method="post">
+    <form class="form-signup" action="/auth/sign-up" method="post">
       <h1 class="h3 mb-3 font-weight-normal">Please sign up</h1>
       <label for="inputFirstName" class="sr-only">First name</label>
       <input type="text" id="inputFirstName" class="form-control" placeholder="First name" name="firstName" required autofocus>
@@ -31,8 +31,8 @@
       <label for="inputRepeatPassword" class="sr-only">Repeat password</label>
       <input type="password" id="inputRepeatPassword" class="form-control" placeholder="Repeat password" name="pass2" required>
       <button class="btn btn-lg btn-primary btn-block" type="submit">Sign up</button>
-      <p>back to <a href="/">Sign in</a></p>
+      <p>back to <a href="/auth/sign-in">Sign in</a></p>
     </form>
-     <script src="./js/signup.js"></script>
+     <script src="/js/signup.js"></script>
   </body>
 </html>
