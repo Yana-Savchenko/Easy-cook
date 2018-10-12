@@ -6,5 +6,5 @@ $(document).ready(() => {
         date.setDate(date.getDate() - 1);
         document.cookie = "token=; path=/; expires=" + date.toUTCString();
         document.location.assign('/');
-    })
-})
+    });
+});

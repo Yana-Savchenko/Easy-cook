@@ -5,10 +5,6 @@ const bodyParser = require('body-parser');
 const sequelize = require('./db');
 // const auth = require('./routes/auth');
 var cookieParser = require('cookie-parser')
-const checkAuth = require('./middlewares/authFunc');
-const db = require('./models')
-const jwt = require('jsonwebtoken'); // аутентификация по JWT для hhtp
-const jwtsecret = "mysecretkey"; // ключ для подписи JWT
 const router = require('./routes')
 
 // set hbs engine
