@@ -23,6 +23,21 @@ module.exports = (router) => {
                     age: user.age,
                 });
             });
-        });
+        })
+        .put((req, res) => {
+            let token = req.get('cookie').replace('token=', '');
+            let userID = jwt.verify(token, jwtsecret, (error, decoded) => {
+                return decoded.id;
+            });
+            db.user.update(
+                {
+                    firstName: req.body.firstName,
+                    lastName: req.body.lastName,
+                    email: req.body.email,
+                    age: req.body.age
+                },
+                { where: { id: userID } }
+            ).then(() => {res.json("ok"); })
+        })
 
 }
