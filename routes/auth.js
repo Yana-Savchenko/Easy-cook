@@ -36,7 +36,7 @@ module.exports = (router) => {
 
     router.route('/sign-in')
         .get((req, res) => {
-            res.render("signIn.hbs");
+            return res.render("signIn.hbs");
         })
         .post((req, res) => {
             db.user.findOne({ where: { email: req.body.email } }).then((user) => {

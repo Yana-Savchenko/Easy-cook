@@ -91,8 +91,8 @@ module.exports = (router) => {
                         users.map((user) => {
                             allUsers.push(user.dataValues);
                         });
-                        let usersOnpage = getUsers(allUsers, activePage, usersQty)
-                        let pages = pagination(allUsers.length, activePage, usersQty)
+                        let usersOnpage = getUsers(allUsers, activePage)
+                        let pages = pagination(allUsers.length, activePage)
                         res.render("allUsers.hbs", {
                             users: usersOnpage,
                             pages: pages,
@@ -102,5 +102,35 @@ module.exports = (router) => {
                 }
             })
 
+        })
+    router.route('/all-users/:page')
+        .get((req, res) => {
+            let token = req.get('cookie').replace('token=', '');
+            let userID = jwt.verify(token, jwtsecret, (error, decoded) => {
+                return decoded.id;
+            })
+            let admin = false;
+            console.log(req.params.page);
+            db.user.findOne({ where: { id: userID } }).then((user) => {
+                if (user.role === "admin") {
+                    admin = true;
+                    db.user.all().then((users) => {
+                        let allUsers = [];
+                        users.map((user) => {
+                            allUsers.push(user.dataValues);
+                        });
+                        let usersOnpage = getUsers(allUsers, req.params.page)
+                        console.log(usersOnpage);
+
+                        let pages = pagination(allUsers.length, req.params.page)
+                        console.log(pages);
+
+                        return res.render("partials/usersList.hbs", {
+                            users: usersOnpage,
+                            pages: pages,
+                        });
+                    });
+                }
+            })
         })
 }

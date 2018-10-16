@@ -151,9 +151,6 @@ body {
 .edit-details {
   display: none;
 }
-.view-details {
-  /* display: none; */
-}
 .edit-details li{
   margin-bottom: .5rem;
 }
@@ -209,7 +206,29 @@ img.img-rounded {
 } 
 
 /* Users' list */
-
-.list-group {
+.page-item.active .page-link {
+  background-color: #28447a;
+  border-color: #28447a;
+}
+.page-item .page-link {
+  color: #28447a;
+}
+.page-link:focus {
+  box-shadow: none;
+}
+.search {
+  display: flex;
   margin-bottom: 1rem;
+  justify-content: center;
+}
+.search input {
+  width: 50%;
+}
+.search .btn {
+  text-align: center;
+  background-color: #28447a;
+  color: #fff;
+  padding: 0.2rem 1rem;
+  font-size: 1.25rem;
+  border: none;
 }
