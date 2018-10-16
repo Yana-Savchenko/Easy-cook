@@ -1,10 +1,25 @@
 {{#> home}}
-  {{#*inline "content-block"}}
-    <div class="container">
+{{#*inline "content-block"}}
+<div class="container">
   <div class="row">
-    <div class="col-md-6 img">
-      <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRvzOpl3-kqfNbPcA_u_qEZcSuvu5Je4Ce_FkTMMjxhB-J1wWin-Q"
-        alt="" class="img-rounded">
+    <div class="col-md-6 avatar-container">
+      <div class="img">
+        {{#if image}}
+        <img src={{image}} alt="" class="img-rounded">
+        {{/if}}
+      </div>
+      <div class="file-upload">
+        <label>
+          {{!-- <form method="post" action="/user/avatar" enctype="multipart/form-data" id="avatar"> --}}
+            <input type="file" name="avatar">
+          {{!-- </form> --}}
+          <span>Change avatar</span>
+        </label>
+      </div>
+      <div>
+        <input type="text" id="filename" class="filename" disabled>
+        <button class="btn btn-sm btn-primary" type="button" id="save-avatar">Save</button>
+      </div>
     </div>
     <div class="col-md-6 details view-details">
       <ul class="user-data">
@@ -46,6 +61,6 @@
       <button class="btn btn-sm btn-primary" type="button" id="cancel">Cancel</button>
     </div>
   </div>
-    </div>
-  {{/inline}}
+</div>
+{{/inline}}
 {{/home}}

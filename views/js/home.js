@@ -26,14 +26,37 @@ $(document).ready(() => {
             }
         }
         Api.put('/user/profile', options)
-        .then((res) => {
-            if (res.status == 200) {
-                document.location.assign('/user/profile');
-            }
-        })
+            .then((res) => {
+                if (res.status == 200) {
+                    document.location.assign('/user/profile');
+                }
+            })
     })
     $("#cancel").click(() => {
         $(".view-details").show();
         $(".edit-details").hide();
     });
+
+    $(".file-upload input[type=file]").change(function () {
+        var filename = $(this).val().replace(/.*\\/, "");
+        $("#filename").val(filename);
+        $("#save-avatar").show();
+    });
+    $("#save-avatar").click(() => {
+        const formData = new FormData();
+        const imagefile = document.querySelector('input[name="avatar"]');
+        formData.append("avatar", imagefile.files[0]);
+        Api.post('avatar/', {
+            body: formData,
+        })
+            .then((res) => res.json())
+            .then((res) => {
+                console.log('here we go', res);
+                $('.img-rounded').attr('src', res.path);
+                $("#filename").val('');
+                $("#save-avatar").hide();
+            })
+
+
+    })
 });

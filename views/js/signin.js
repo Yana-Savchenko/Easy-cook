@@ -21,7 +21,6 @@ $(document).ready(() => {
             }
         })
         .then((res) => {
-            console.log(res);
             document.cookie = "token=" + res.token + "; path=/";
             document.location.assign('/home');
         }
@@ -49,7 +48,6 @@ $(document).ready(() => {
             }
         })
         .then((res) => {
-            console.log(res);
             document.cookie = "token=" + res.token + "; path=/";
             document.location.assign('/home');
         }

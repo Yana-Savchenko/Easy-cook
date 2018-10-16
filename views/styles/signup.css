@@ -36,7 +36,7 @@ body {
   margin-bottom: -1px;
   border-radius: 0;
 }
-.form-signup input[type="text"] {
+.form-signup input[type="text"], .form-signup input[type="number"] {
   margin-bottom: -1px;
   border-radius: 0;
 }

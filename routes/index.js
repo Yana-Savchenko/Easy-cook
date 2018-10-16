@@ -22,9 +22,13 @@ module.exports = (app) => {
       return decoded.id;
     })
     db.user.findOne({ where: { id: userID } }).then((user) => {
-      console.log(user.dataValues);
+      let admin = false;
+                if (user.role === "admin") {
+                    admin = true;
+                }
       res.render("partials/home.hbs", {
         userName: user.firstName + ' ' + user.lastName,
+        admin,
       });
     });
 

@@ -41,6 +41,7 @@ module.exports = (router) => {
         .post((req, res) => {
             db.user.findOne({ where: { email: req.body.email } }).then((user) => {
                 if (user) {
+                    console.log(user.dataValues);
                     if (bcrypt.compareSync(req.body.pass, user.dataValues.password)) {
                         const payload = {
                             id: user.dataValues.id,
