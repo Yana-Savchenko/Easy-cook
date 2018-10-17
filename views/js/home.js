@@ -60,18 +60,16 @@ $(document).ready(() => {
 
     })
 
-    $("#users-list").on("click", (e) => {
+    $("#users-list").on("click", 'li', (e) => {
         e.preventDefault();
         let page = e.target.closest("li");
         page = $(page).data("page");
-        console.log(page);
         Api.get(`/user/all-users/${page}`)
           .then((res) => {
               return res.text()
             })
             .then((res) => {
                 $("#users-list").html(res);
-            console.log('here we go2', res);
           })
     })
 });

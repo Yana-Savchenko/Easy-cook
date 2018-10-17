@@ -1,9 +1,11 @@
 const bodyParser = require('body-parser');
 var multer = require('multer')
+const fs = require('fs');
 var upload = multer({ dest: './views/files/' })
 const jwt = require('jsonwebtoken'); // аутентификация по JWT для hhtp
 const jwtsecret = "mysecretkey"; // ключ для подписи JWT
 const checkAuth = require('../middlewares/authFunc');
+const checkAccess = require('../middlewares/checkAccess');
 const db = require('../models')
 const pagination = require('../helpers/pagination');
 const getUsers = require('../helpers/getUsers');
@@ -15,18 +17,9 @@ module.exports = (router) => {
     router.use(checkAuth);
 
     router.route('/profile')
-        .get((req, res) => {
-            let token = req.get('cookie').replace('token=', '');
-            let userID = jwt.verify(token, jwtsecret, (error, decoded) => {
-                return decoded.id;
-            })
-
-            db.user.findOne({ where: { id: userID } }).then((user) => {
-                let admin = false;
+        .get(checkAccess, (req, res) => {
+            db.user.findOne({ where: { id: req.user.id } }).then((user) => {
                 let image = '';
-                if (user.role === "admin") {
-                    admin = true;
-                }
                 if (user.avatar_path) {
                     image = user.avatar_path;
                 } else {
@@ -37,16 +30,12 @@ module.exports = (router) => {
                     lastName: user.lastName,
                     email: user.email,
                     age: user.age,
-                    admin,
+                    admin: req.admin,
                     image
                 });
             });
         })
         .put((req, res) => {
-            let token = req.get('cookie').replace('token=', '');
-            let userID = jwt.verify(token, jwtsecret, (error, decoded) => {
-                return decoded.id;
-            });
             db.user.update(
                 {
                     firstName: req.body.firstName,
@@ -54,83 +43,60 @@ module.exports = (router) => {
                     email: req.body.email,
                     age: req.body.age
                 },
-                { where: { id: userID } }
+                { where: { id: req.user.id } }
             ).then(() => { res.json("ok"); })
         })
     router.route('/avatar')
         .post(upload.single('avatar'), (req, res) => {
-            let token = req.get('cookie').replace('token=', '');
-            let userID = jwt.verify(token, jwtsecret, (error, decoded) => {
-                return decoded.id;
-            });
             return db.user.update(
                 {
                     avatar_path: `/files/${req.file.filename}`,
                     avatar_name: req.file.originalname,
                 },
-                { where: { id: userID } }
+                { where: { id: req.user.id } }
             ).then((data) => {
                 return res.json({ path: `/files/${req.file.filename}` })
             });
         })
 
     router.route('/all-users')
-        .get((req, res) => {
-            let token = req.get('cookie').replace('token=', '');
-            let userID = jwt.verify(token, jwtsecret, (error, decoded) => {
-                return decoded.id;
-            })
-            let admin = false;
-            db.user.findOne({ where: { id: userID } }).then((user) => {
-                if (user.role === "admin") {
-                    admin = true;
-                    db.user.all().then((users) => {
-                        const activePage = 1;
-                        const usersQty = 4;
-                        let allUsers = [];
-                        users.map((user) => {
-                            allUsers.push(user.dataValues);
-                        });
-                        let usersOnpage = getUsers(allUsers, activePage)
-                        let pages = pagination(allUsers.length, activePage)
-                        res.render("allUsers.hbs", {
-                            users: usersOnpage,
-                            pages: pages,
-                            admin,
-                        });
-                    });
-                }
-            })
+        .get(checkAccess, (req, res) => {
+            if (!req.admin) {
+                return res.render("pageNotFound.hbs");
+            }
+            db.user.all().then((users) => {
+                let allUsers = [];
+                users.map((user) => {
+                    allUsers.push(user.dataValues);
+                });
+                let usersOnpage = getUsers(allUsers)
+                let pages = pagination(allUsers.length)
+                return res.render("allUsers.hbs", {
+                    users: usersOnpage,
+                    pages: pages,
+                    admin: req.admin,
+                });
+            });
 
         })
     router.route('/all-users/:page')
-        .get((req, res) => {
-            let token = req.get('cookie').replace('token=', '');
-            let userID = jwt.verify(token, jwtsecret, (error, decoded) => {
-                return decoded.id;
-            })
-            let admin = false;
-            console.log(req.params.page);
-            db.user.findOne({ where: { id: userID } }).then((user) => {
-                if (user.role === "admin") {
-                    admin = true;
-                    db.user.all().then((users) => {
-                        let allUsers = [];
-                        users.map((user) => {
-                            allUsers.push(user.dataValues);
-                        });
-                        let usersOnpage = getUsers(allUsers, req.params.page)
-                        console.log(usersOnpage);
-
-                        let pages = pagination(allUsers.length, req.params.page)
-                        console.log(pages);
-
-                        return res.render("partials/usersList.hbs", {
-                            users: usersOnpage,
-                            pages: pages,
-                        });
-                    });
-                }
-            })
+        .get(checkAccess, (req, res) => {
+            if (!req.admin) {
+                return res.render("pageNotFound.hbs");
+            }
+            db.user.all().then((users) => {
+                let allUsers = [];
+                users.map((user) => {
+                    allUsers.push(user.dataValues);
+                });
+                let usersOnpage = getUsers(allUsers, req.params.page)
+                let pages = pagination(allUsers.length, req.params.page)
+                // const usersList = fs.readFileSync('../views/partials/usersList.hbs', "utf-8" );
+                // console.log(usersList);
+                return res.render("partials/usersList.hbs", {
+                    users: usersOnpage,
+                    pages: pages,
+                });
+            });
         })
 }
