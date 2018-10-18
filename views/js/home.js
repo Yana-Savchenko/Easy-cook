@@ -1,6 +1,7 @@
 
+
 $(document).ready(() => {
-    let sortData = "firstName_down"; // firstName, lastName, email, age
+    let sortData = "firstName_down"; // firstName, lastName, email, age / up, down
     let pageNumber = 1;
     $("#sign-out").click((e) => {
         e.preventDefault();
@@ -73,7 +74,6 @@ $(document).ready(() => {
             .then((res) => {
                 $("#users-list").html(res);
                 $("thead span").hide();
-                console.log(params[1]);
                 $(`span.${params[0]}`).show();
             })
     })
@@ -95,7 +95,10 @@ $(document).ready(() => {
             sortData = tempData.join('_');
         }
         let params = sortData.split('_')
-        Api.get(`/user/all-users/sort?column=${params[0]}&direction=${params[1]}&&page=${pageNumber}`)
+        let searchData = $(".search input").val();
+        console.log('s', searchData);
+        
+        Api.get(`/user/all-users/sort?column=${params[0]}&direction=${params[1]}&page=${pageNumber}&search_data=${searchData}`)
             .then((res) => {
                 return res.text()
             })
@@ -105,4 +108,28 @@ $(document).ready(() => {
                 $(`span.${column}`).show();
             })
     })
+    $(".search button").click(searchUsers);
+    $('.search input').keypress((e) => {
+        if (e.keyCode === 13) {
+            searchUsers();
+        }
+    });
+    
+    const dinamicSearch = _.debounce(searchUsers, 300);
+    
+    $('.search input').on('input', dinamicSearch);
+    
+    function searchUsers() {
+        let data = $(".search input").val(); 
+        sortData = "firstName_down";
+        Api.get(`/user/all-users/search?data=${data}`)
+            .then((res) => {
+                return res.text()
+            })
+            .then((res) => {
+                $("#users-list").html(res);
+                $("thead span").hide();
+                $(`span.${sortData.split('_')[0]}`).show();
+            })
+    }
 });

@@ -206,6 +206,9 @@ img.img-rounded {
 } 
 
 /* Users' list */
+thead {
+  cursor: pointer;
+}
 .page-item.active .page-link {
   background-color: #28447a;
   border-color: #28447a;
