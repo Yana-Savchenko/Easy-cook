@@ -87,8 +87,6 @@ module.exports = (router) => {
 
     router.route('/all-users/sort')
         .get(checkAccess, (req, res) => {
-            console.log(req.query);
-
             if (!req.admin) {
                 return res.render("pageNotFound.hbs");
             }
@@ -106,8 +104,6 @@ module.exports = (router) => {
                     users.map((user) => {
                         allUsers.push(user.dataValues);
                     });
-                    console.log(allUsers);
-
                     allUsers = sortUsers(allUsers, req.query.column, req.query.direction);
                     let usersOnpage = getUsers(allUsers, req.query.page)
                     let pages = pagination(allUsers.length, req.query.page)
@@ -136,7 +132,6 @@ module.exports = (router) => {
         })
     router.route('/all-users/search')
         .get(checkAccess, (req, res) => {
-            console.log(req.query);
             if (!req.admin) {
                 return res.render("pageNotFound.hbs");
             }
@@ -185,20 +180,45 @@ module.exports = (router) => {
             if (!req.admin) {
                 return res.render("pageNotFound.hbs");
             }
-            db.user.findAll().then((users) => {
-                let allUsers = [];
-                users.map((user) => {
-                    allUsers.push(user.dataValues);
+            if (req.query.search_data) {
+                db.user.findAll({
+                    where: {
+                        [Op.or]: [
+                            { firstName: { [Op.iLike]: `%${req.query.search_data}%` } },
+                            { lastName: { [Op.iLike]: `%${req.query.search_data}%` } },
+                            { email: { [Op.iLike]: `%${req.query.search_data}%` } }
+                        ]
+                    }
+                }).then((users) => {
+                    let allUsers = [];
+                    users.map((user) => {
+                        allUsers.push(user.dataValues);
+                    });
+                    allUsers = sortUsers(allUsers, req.query.column, req.query.direction);
+                    let usersOnpage = getUsers(allUsers, req.params.page)
+                    let pages = pagination(allUsers.length, req.params.page)
+                    return res.render("partials/usersList.hbs", {
+                        users: usersOnpage,
+                        pages: pages,
+                        direction: req.query.direction,
+                    });
                 });
-                allUsers = sortUsers(allUsers, req.query.column, req.query.direction);
-                let usersOnpage = getUsers(allUsers, req.params.page)
-                let pages = pagination(allUsers.length, req.params.page)
-                return res.render("partials/usersList.hbs", {
-                    users: usersOnpage,
-                    pages: pages,
-                    direction: req.query.direction,
+            } else {
+                db.user.findAll().then((users) => {
+                    let allUsers = [];
+                    users.map((user) => {
+                        allUsers.push(user.dataValues);
+                    });
+                    allUsers = sortUsers(allUsers, req.query.column, req.query.direction);
+                    let usersOnpage = getUsers(allUsers, req.params.page)
+                    let pages = pagination(allUsers.length, req.params.page)
+                    return res.render("partials/usersList.hbs", {
+                        users: usersOnpage,
+                        pages: pages,
+                        direction: req.query.direction,
+                    });
                 });
-            });
+            }
         })
 
 }

@@ -67,7 +67,8 @@ $(document).ready(() => {
         let page = e.target.closest("li");
         pageNumber = $(page).data("page");
         let params = sortData.split('_')
-        Api.get(`/user/all-users/${pageNumber}?column=${params[0]}&direction=${params[1]}`)
+        let searchData = $(".search input").val()
+        Api.get(`/user/all-users/${pageNumber}?column=${params[0]}&direction=${params[1]}&search_data=${searchData}`)
             .then((res) => {
                 return res.text()
             })
@@ -77,11 +78,11 @@ $(document).ready(() => {
                 $(`span.${params[0]}`).show();
             })
     })
-    $("#users-list").on("click", 'thead th', function(e) {
+    $("#users-list").on("click", 'thead th', function (e) {
         let column = $(this).data("name");
         if (sortData.split('_')[0] === column) {
             let tempData = sortData.split('_');
-            if(tempData[1] === 'down') {
+            if (tempData[1] === 'down') {
                 tempData[1] = 'up';
                 sortData = tempData.join('_');
             } else {
@@ -96,8 +97,7 @@ $(document).ready(() => {
         }
         let params = sortData.split('_')
         let searchData = $(".search input").val();
-        console.log('s', searchData);
-        
+
         Api.get(`/user/all-users/sort?column=${params[0]}&direction=${params[1]}&page=${pageNumber}&search_data=${searchData}`)
             .then((res) => {
                 return res.text()
@@ -114,13 +114,13 @@ $(document).ready(() => {
             searchUsers();
         }
     });
-    
+
     const dinamicSearch = _.debounce(searchUsers, 300);
-    
+
     $('.search input').on('input', dinamicSearch);
-    
+
     function searchUsers() {
-        let data = $(".search input").val(); 
+        let data = $(".search input").val();
         sortData = "firstName_down";
         Api.get(`/user/all-users/search?data=${data}`)
             .then((res) => {
