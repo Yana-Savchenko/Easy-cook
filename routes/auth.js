@@ -25,7 +25,8 @@ module.exports = (router) => {
                 lastName: req.body.lastName,
                 email: req.body.email,
                 age: req.body.age,
-                password: hash
+                password: hash,
+                role: "user"
             })
                 .then((user) => {
                     if (user) {
