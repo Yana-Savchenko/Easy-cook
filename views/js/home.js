@@ -1,5 +1,3 @@
-
-
 $(document).ready(() => {
     let sortData = "firstName_down"; // firstName, lastName, email, age / up, down
     let pageNumber = 1;
@@ -68,7 +66,7 @@ $(document).ready(() => {
         pageNumber = $(page).data("page");
         let params = sortData.split('_')
         let searchData = $(".search input").val()
-        Api.get(`/user/all-users/${pageNumber}?column=${params[0]}&direction=${params[1]}&search_data=${searchData}`)
+        Api.get(`/user/all-users/search?page=${pageNumber}&column=${params[0]}&direction=${params[1]}&search_data=${searchData}`)
             .then((res) => {
                 return res.text()
             })
@@ -98,7 +96,7 @@ $(document).ready(() => {
         let params = sortData.split('_')
         let searchData = $(".search input").val();
 
-        Api.get(`/user/all-users/sort?column=${params[0]}&direction=${params[1]}&page=${pageNumber}&search_data=${searchData}`)
+        Api.get(`/user/all-users/search?column=${params[0]}&direction=${params[1]}&page=${pageNumber}&search_data=${searchData}`)
             .then((res) => {
                 return res.text()
             })
@@ -115,14 +113,12 @@ $(document).ready(() => {
         }
     });
 
-    const dinamicSearch = _.debounce(searchUsers, 300);
-
-    $('.search input').on('input', dinamicSearch);
+    $('.search input').on('input', _.debounce(searchUsers, 300));
 
     function searchUsers() {
         let data = $(".search input").val();
         sortData = "firstName_down";
-        Api.get(`/user/all-users/search?data=${data}`)
+        Api.get(`/user/all-users/search?search_data=${data}`)
             .then((res) => {
                 return res.text()
             })

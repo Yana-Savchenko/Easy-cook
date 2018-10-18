@@ -4,8 +4,6 @@ const fs = require('fs');
 const Sequelize = require('sequelize');
 const Op = Sequelize.Op
 var upload = multer({ dest: './views/files/' })
-const jwt = require('jsonwebtoken'); // аутентификация по JWT для hhtp
-const jwtsecret = "mysecretkey"; // ключ для подписи JWT
 const checkAuth = require('../middlewares/authFunc');
 const checkAccess = require('../middlewares/checkAccess');
 const sortUsers = require('../helpers/sortUsers')
@@ -85,140 +83,44 @@ module.exports = (router) => {
 
         })
 
-    router.route('/all-users/sort')
-        .get(checkAccess, (req, res) => {
-            if (!req.admin) {
-                return res.render("pageNotFound.hbs");
-            }
-            if (req.query.search_data) {
-                db.user.findAll({
-                    where: {
-                        [Op.or]: [
-                            { firstName: { [Op.iLike]: `%${req.query.search_data}%` } },
-                            { lastName: { [Op.iLike]: `%${req.query.search_data}%` } },
-                            { email: { [Op.iLike]: `%${req.query.search_data}%` } }
-                        ]
-                    }
-                }).then((users) => {
-                    let allUsers = [];
-                    users.map((user) => {
-                        allUsers.push(user.dataValues);
-                    });
-                    allUsers = sortUsers(allUsers, req.query.column, req.query.direction);
-                    let usersOnpage = getUsers(allUsers, req.query.page)
-                    let pages = pagination(allUsers.length, req.query.page)
-                    return res.render("partials/usersList.hbs", {
-                        users: usersOnpage,
-                        pages: pages,
-                        direction: req.query.direction,
-                    });
-                });
-            } else {
-                db.user.all().then((users) => {
-                    let allUsers = [];
-                    users.map((user) => {
-                        allUsers.push(user.dataValues);
-                    });
-                    allUsers = sortUsers(allUsers, req.query.column, req.query.direction);
-                    let usersOnpage = getUsers(allUsers, req.query.page)
-                    let pages = pagination(allUsers.length, req.query.page)
-                    return res.render("partials/usersList.hbs", {
-                        users: usersOnpage,
-                        pages: pages,
-                        direction: req.query.direction,
-                    });
-                });
-            }
-        })
     router.route('/all-users/search')
         .get(checkAccess, (req, res) => {
             if (!req.admin) {
                 return res.render("pageNotFound.hbs");
             }
-            if (req.query.data) {
-                db.user.findAll({
-                    where: {
-                        [Op.or]: [
-                            { firstName: { [Op.iLike]: `%${req.query.data}%` } },
-                            { lastName: { [Op.iLike]: `%${req.query.data}%` } },
-                            { email: { [Op.iLike]: `%${req.query.data}%` } }
-                        ]
-                    }
-                }).then((users) => {
-                    let allUsers = [];
-                    users.map((user) => {
-                        allUsers.push(user.dataValues);
-                    });
-                    allUsers = sortUsers(allUsers);
-                    let usersOnpage = getUsers(allUsers)
-                    let pages = pagination(allUsers.length)
-                    return res.render("partials/usersList.hbs", {
-                        users: usersOnpage,
-                        pages: pages,
-                        direction: "down",
-                    });
-                });
-            } else {
-                db.user.all().then((users) => {
-                    let allUsers = [];
-                    users.map((user) => {
-                        allUsers.push(user.dataValues);
-                    });
-                    allUsers = sortUsers(allUsers);
-                    let usersOnpage = getUsers(allUsers)
-                    let pages = pagination(allUsers.length)
-                    return res.render("partials/usersList.hbs", {
-                        users: usersOnpage,
-                        pages: pages,
-                        direction: "down",
-                    });
-                });
-            }
-        })
-    router.route('/all-users/:page')
-        .get(checkAccess, (req, res) => {
-            if (!req.admin) {
-                return res.render("pageNotFound.hbs");
+            const limit = 3;
+            const offset = limit * ((req.query.page || 1) - 1);
+            const direction = ((req.query.direction || "down") === 'down') ? 'ASC' : 'DESC';
+            const queryParams = {
+                where: {},
+                limit,
+                offset,
+                order: [[req.query.column || "firstName", direction]]
             }
             if (req.query.search_data) {
-                db.user.findAll({
-                    where: {
-                        [Op.or]: [
-                            { firstName: { [Op.iLike]: `%${req.query.search_data}%` } },
-                            { lastName: { [Op.iLike]: `%${req.query.search_data}%` } },
-                            { email: { [Op.iLike]: `%${req.query.search_data}%` } }
-                        ]
-                    }
-                }).then((users) => {
-                    let allUsers = [];
-                    users.map((user) => {
-                        allUsers.push(user.dataValues);
-                    });
-                    allUsers = sortUsers(allUsers, req.query.column, req.query.direction);
-                    let usersOnpage = getUsers(allUsers, req.params.page)
-                    let pages = pagination(allUsers.length, req.params.page)
-                    return res.render("partials/usersList.hbs", {
-                        users: usersOnpage,
-                        pages: pages,
-                        direction: req.query.direction,
-                    });
-                });
-            } else {
-                db.user.findAll().then((users) => {
-                    let allUsers = [];
-                    users.map((user) => {
-                        allUsers.push(user.dataValues);
-                    });
-                    allUsers = sortUsers(allUsers, req.query.column, req.query.direction);
-                    let usersOnpage = getUsers(allUsers, req.params.page)
-                    let pages = pagination(allUsers.length, req.params.page)
-                    return res.render("partials/usersList.hbs", {
-                        users: usersOnpage,
-                        pages: pages,
-                        direction: req.query.direction,
-                    });
-                });
+                queryParams.where = {
+                    [Op.or]: [
+                        { firstName: { [Op.iLike]: `%${req.query.search_data}%` } },
+                        { lastName: { [Op.iLike]: `%${req.query.search_data}%` } },
+                        { email: { [Op.iLike]: `%${req.query.search_data}%` } }
+                    ]
+                }
             }
+            return db.user.findAll(queryParams)
+                .then((users) => {
+                    let allUsers = [];
+                    users.map((user) => {
+                        allUsers.push(user.dataValues);
+                    });
+                    db.user.count(queryParams).then((count) => {
+                        let pages = pagination(count, req.query.page);
+                        return res.render("partials/usersList.hbs", {
+                            users: allUsers,
+                            pages: pages,
+                            direction: req.query.direction || 'down',
+                        });
+                    })
+                })
+            // .catch(err => res.render());
         })
-
 }
