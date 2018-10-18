@@ -1,4 +1,4 @@
-module.exports = (users, activePage = 1, userQty = 2) => {
+module.exports = (users, activePage = 1, userQty = 3) => {
     let usersOnPage = [];
     let num = activePage * userQty - userQty;
     users.map((user, index) => {

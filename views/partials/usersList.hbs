@@ -1,10 +1,10 @@
   <table class="table table-bordered">
     <thead class="thead-light">
       <tr>
-        <th scope="col">First name <span class="fas fa-sort-alpha-down"></span></th>
-        <th scope="col">Last name <span class="fas fa-sort-alpha-down"></span></th>
-        <th scope="col">Email <span class="fas fa-sort-alpha-down"></span></th>
-        <th scope="col">Age <span class="fas fa-sort-numeric-up"></span></th>
+        <th scope="col" data-name="firstName">First name <span class="fas fa-sort-alpha-{{this.direction}} firstName"></span></th>
+        <th scope="col" data-name="lastName">Last name <span class="fas fa-sort-alpha-{{this.direction}} lastName"></span></th>
+        <th scope="col" data-name="email">Email <span class="fas fa-sort-alpha-{{this.direction}} email"></span></th>
+        <th scope="col" data-name="age">Age <span class="fas fa-sort-numeric-{{this.direction}} age"></span></th>
       </tr>
     </thead>
     {{#each users}}

@@ -6,6 +6,7 @@ const jwt = require('jsonwebtoken'); // аутентификация по JWT д
 const jwtsecret = "mysecretkey"; // ключ для подписи JWT
 const checkAuth = require('../middlewares/authFunc');
 const checkAccess = require('../middlewares/checkAccess');
+const sortUsers = require('../helpers/sortUsers')
 const db = require('../models')
 const pagination = require('../helpers/pagination');
 const getUsers = require('../helpers/getUsers');
@@ -61,6 +62,7 @@ module.exports = (router) => {
 
     router.route('/all-users')
         .get(checkAccess, (req, res) => {
+            console.log(req.params);
             if (!req.admin) {
                 return res.render("pageNotFound.hbs");
             }
@@ -69,18 +71,23 @@ module.exports = (router) => {
                 users.map((user) => {
                     allUsers.push(user.dataValues);
                 });
+                allUsers = sortUsers(allUsers);
                 let usersOnpage = getUsers(allUsers)
                 let pages = pagination(allUsers.length)
                 return res.render("allUsers.hbs", {
                     users: usersOnpage,
                     pages: pages,
                     admin: req.admin,
+                    direction: "down",
                 });
             });
 
         })
-    router.route('/all-users/:page')
+
+    router.route('/all-users/sort')
         .get(checkAccess, (req, res) => {
+            console.log(req.query);
+
             if (!req.admin) {
                 return res.render("pageNotFound.hbs");
             }
@@ -89,14 +96,38 @@ module.exports = (router) => {
                 users.map((user) => {
                     allUsers.push(user.dataValues);
                 });
-                let usersOnpage = getUsers(allUsers, req.params.page)
-                let pages = pagination(allUsers.length, req.params.page)
-                // const usersList = fs.readFileSync('../views/partials/usersList.hbs', "utf-8" );
-                // console.log(usersList);
+                allUsers = sortUsers(allUsers, req.query.column, req.query.direction);
+                let usersOnpage = getUsers(allUsers, req.query.page)
+                let pages = pagination(allUsers.length, req.query.page)
                 return res.render("partials/usersList.hbs", {
                     users: usersOnpage,
                     pages: pages,
+                    direction: req.query.direction,
                 });
             });
         })
+
+    router.route('/all-users/:page')
+        .get(checkAccess, (req, res) => {
+            console.log(req.query);
+
+            if (!req.admin) {
+                return res.render("pageNotFound.hbs");
+            }
+            db.user.all().then((users) => {
+                let allUsers = [];
+                users.map((user) => {
+                    allUsers.push(user.dataValues);
+                });
+                allUsers = sortUsers(allUsers, req.query.column, req.query.direction);
+                let usersOnpage = getUsers(allUsers, req.params.page)
+                let pages = pagination(allUsers.length, req.params.page)
+                return res.render("partials/usersList.hbs", {
+                    users: usersOnpage,
+                    pages: pages,
+                    direction: req.query.direction,
+                });
+            });
+        })
+
 }

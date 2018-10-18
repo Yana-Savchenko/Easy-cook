@@ -1,5 +1,7 @@
 
 $(document).ready(() => {
+    let sortData = "firstName_down"; // firstName, lastName, email, age
+    let pageNumber = 1;
     $("#sign-out").click((e) => {
         e.preventDefault();
         let date = new Date;
@@ -51,7 +53,6 @@ $(document).ready(() => {
         })
             .then((res) => res.json())
             .then((res) => {
-                console.log('here we go', res);
                 $('.img-rounded').attr('src', res.path);
                 $("#filename").val('');
                 $("#save-avatar").hide();
@@ -63,13 +64,45 @@ $(document).ready(() => {
     $("#users-list").on("click", 'li', (e) => {
         e.preventDefault();
         let page = e.target.closest("li");
-        page = $(page).data("page");
-        Api.get(`/user/all-users/${page}`)
-          .then((res) => {
-              return res.text()
+        pageNumber = $(page).data("page");
+        let params = sortData.split('_')
+        Api.get(`/user/all-users/${pageNumber}?column=${params[0]}&direction=${params[1]}`)
+            .then((res) => {
+                return res.text()
             })
             .then((res) => {
                 $("#users-list").html(res);
-          })
+                $("thead span").hide();
+                console.log(params[1]);
+                $(`span.${params[0]}`).show();
+            })
+    })
+    $("#users-list").on("click", 'thead th', function(e) {
+        let column = $(this).data("name");
+        if (sortData.split('_')[0] === column) {
+            let tempData = sortData.split('_');
+            if(tempData[1] === 'down') {
+                tempData[1] = 'up';
+                sortData = tempData.join('_');
+            } else {
+                tempData[1] = 'down';
+                sortData = tempData.join('_');
+            }
+        } else {
+            let tempData = sortData.split('_');
+            tempData[0] = column;
+            tempData[1] = 'down';
+            sortData = tempData.join('_');
+        }
+        let params = sortData.split('_')
+        Api.get(`/user/all-users/sort?column=${params[0]}&direction=${params[1]}&&page=${pageNumber}`)
+            .then((res) => {
+                return res.text()
+            })
+            .then((res) => {
+                $("#users-list").html(res);
+                $("thead span").hide();
+                $(`span.${column}`).show();
+            })
     })
 });

@@ -232,3 +232,14 @@ img.img-rounded {
   font-size: 1.25rem;
   border: none;
 }
+span.firstName {
+}
+span.lastName {
+  display: none;
+}
+span.email {
+  display: none;
+}
+span.age {
+  display: none;
+}

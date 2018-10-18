@@ -1,4 +1,4 @@
-module.exports = (users, activePage = 1, usersQty = 2) => {
+module.exports = (users, activePage = 1, usersQty = 3) => {
     const pagesQty = Math.ceil(users / usersQty);
     let pages = [];
     for( let i = 1; i <= pagesQty; i++) {
