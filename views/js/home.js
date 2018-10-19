@@ -52,6 +52,8 @@ $(document).ready(() => {
         })
             .then((res) => res.json())
             .then((res) => {
+                console.log(res.oldPath, res.path);
+                
                 $('.img-rounded').attr('src', res.path);
                 $("#filename").val('');
                 $("#save-avatar").hide();

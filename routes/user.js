@@ -1,8 +1,8 @@
 const bodyParser = require('body-parser');
 var multer = require('multer')
-const fs = require('fs');
 const Sequelize = require('sequelize');
 const Op = Sequelize.Op
+const fs = require('fs');
 var upload = multer({ dest: './views/files/' })
 const checkAuth = require('../middlewares/authFunc');
 const checkAccess = require('../middlewares/checkAccess');
@@ -49,15 +49,19 @@ module.exports = (router) => {
         })
     router.route('/avatar')
         .post(upload.single('avatar'), (req, res) => {
-            return db.user.update(
-                {
-                    avatar_path: `/files/${req.file.filename}`,
-                    avatar_name: req.file.originalname,
-                },
-                { where: { id: req.user.id } }
-            ).then((data) => {
-                return res.json({ path: `/files/${req.file.filename}` })
-            });
+            return db.user.findOne({ where: { id: req.user.id } }).then((user) => {
+                console.log(user.dataValues);
+                return db.user.update(
+                    {
+                        avatar_path: `/files/${req.file.filename}`,
+                        avatar_name: req.file.originalname,
+                    },
+                    { where: { id: req.user.id } }
+                ).then((data) => {
+                    fs.unlinkSync(`/home/fusion/learn/node.js-app/views${user.dataValues.avatar_path}`);
+                    return res.json({ path: `/files/${req.file.filename}`, oldPath: user.dataValues.avatar_path })
+                });
+            })
         })
 
     router.route('/all-users')
