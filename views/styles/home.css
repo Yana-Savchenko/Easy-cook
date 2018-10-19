@@ -123,6 +123,10 @@ body {
 .details li {
   display: flex;
 }
+.invalid-email  {
+  margin-left: 9rem;
+  color: darkred;
+}
 .user-data p:first-child{
   color: #28447a;
   width: 8rem;

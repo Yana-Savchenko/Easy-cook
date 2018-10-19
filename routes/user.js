@@ -1,15 +1,16 @@
 const bodyParser = require('body-parser');
-var multer = require('multer')
+const multer = require('multer')
 const Sequelize = require('sequelize');
-const Op = Sequelize.Op
 const fs = require('fs');
-var upload = multer({ dest: './views/files/' })
+const path = require('path');
+const config = require('../config');
+const Op = Sequelize.Op
+const upload = multer({ dest: './views/files/' })
 const checkAuth = require('../middlewares/authFunc');
 const checkAccess = require('../middlewares/checkAccess');
-const sortUsers = require('../helpers/sortUsers')
 const db = require('../models')
 const pagination = require('../helpers/pagination');
-const getUsers = require('../helpers/getUsers');
+
 
 module.exports = (router) => {
 
@@ -36,21 +37,39 @@ module.exports = (router) => {
                 });
             });
         })
-        .put((req, res) => {
-            db.user.update(
-                {
+        .put(async (req, res) => {
+            var appDir = path.dirname(require.main.filename);
+            try {
+                const user = await db.user.findOne({
+                    where: {
+                        [Op.and]: [{ email: req.body.email },
+                        { id: { [Op.not]: req.user.id } }]
+                    }
+                })
+                if (user) {
+                    return res.status(400).json({ message: 'Invalid email' })
+                }
+                await db.user.update({
                     firstName: req.body.firstName,
                     lastName: req.body.lastName,
                     email: req.body.email,
                     age: req.body.age
                 },
-                { where: { id: req.user.id } }
-            ).then(() => { res.json("ok"); })
+                    { where: { id: req.user.id } });
+                return res.json("ok")
+
+            } catch (err) {
+                return res.status(500).json({ message: err.message })
+            }
+
+        })
+    router.route('/profile/:email')
+        .get((req, res) => {
+
         })
     router.route('/avatar')
         .post(upload.single('avatar'), (req, res) => {
             return db.user.findOne({ where: { id: req.user.id } }).then((user) => {
-                console.log(user.dataValues);
                 return db.user.update(
                     {
                         avatar_path: `/files/${req.file.filename}`,
@@ -58,7 +77,10 @@ module.exports = (router) => {
                     },
                     { where: { id: req.user.id } }
                 ).then((data) => {
-                    fs.unlinkSync(`/home/fusion/learn/node.js-app/views${user.dataValues.avatar_path}`);
+                    if (user.dataValues.avatar_path) {
+                        const path3 = path.resolve(__dirname, '../') + '/views' + user.dataValues.avatar_path;
+                        fs.unlinkSync(path3);
+                    }
                     return res.json({ path: `/files/${req.file.filename}`, oldPath: user.dataValues.avatar_path })
                 });
             })
@@ -69,20 +91,28 @@ module.exports = (router) => {
             if (!req.admin) {
                 return res.render("pageNotFound.hbs");
             }
-            db.user.all().then((users) => {
+            const limit = config.usersQty;
+            const offset = limit * ((req.query.page || 1) - 1);
+            const direction = ((req.query.direction || "down") === 'down') ? 'ASC' : 'DESC';
+            const queryParams = {
+                limit,
+                offset,
+                order: [[req.query.column || "firstName", direction]]
+            }
+            db.user.findAll(queryParams).then((users) => {
                 let allUsers = [];
                 users.map((user) => {
                     allUsers.push(user.dataValues);
                 });
-                allUsers = sortUsers(allUsers);
-                let usersOnpage = getUsers(allUsers)
-                let pages = pagination(allUsers.length)
-                return res.render("allUsers.hbs", {
-                    users: usersOnpage,
-                    pages: pages,
-                    admin: req.admin,
-                    direction: "down",
-                });
+                db.user.count().then((count) => {
+                    let pages = pagination(count, req.query.page);
+                    return res.render("allUsers.hbs", {
+                        users: allUsers,
+                        pages: pages,
+                        admin: req.admin,
+                        direction: req.query.direction || 'down',
+                    });
+                })
             });
 
         })
@@ -92,7 +122,7 @@ module.exports = (router) => {
             if (!req.admin) {
                 return res.render("pageNotFound.hbs");
             }
-            const limit = 3;
+            const limit = config.usersQty;
             const offset = limit * ((req.query.page || 1) - 1);
             const direction = ((req.query.direction || "down") === 'down') ? 'ASC' : 'DESC';
             const queryParams = {

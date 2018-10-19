@@ -1,6 +1,6 @@
 $(document).ready(() => {
-    let sortData = "firstName_down"; // firstName, lastName, email, age / up, down
-    let pageNumber = 1;
+    localStorage.setItem('sortData', "firstName_down");
+    localStorage.setItem('pageNumber', "1");
     $("#sign-out").click((e) => {
         e.preventDefault();
         let date = new Date;
@@ -26,12 +26,21 @@ $(document).ready(() => {
                 'Content-Type': 'application/json',
             }
         }
-        Api.put('/user/profile', options)
-            .then((res) => {
-                if (res.status == 200) {
-                    document.location.assign('/user/profile');
-                }
-            })
+                    Api.put('/user/profile', options)
+                        .then((res) => {
+                            if (res.status == 200) {
+                               return document.location.assign('/user/profile');
+                            }
+                            if (res.status == 400) {
+                                return res.text();
+                             }
+                        })
+                        .then((res) => {
+                            console.log('res', res);
+
+                            $('.invalid-email').html(JSON.parse(res).message);
+                        })
+                        .catch(err => console.log('err', err))
     })
     $("#cancel").click(() => {
         $(".view-details").show();
@@ -52,8 +61,6 @@ $(document).ready(() => {
         })
             .then((res) => res.json())
             .then((res) => {
-                console.log(res.oldPath, res.path);
-                
                 $('.img-rounded').attr('src', res.path);
                 $("#filename").val('');
                 $("#save-avatar").hide();
@@ -62,11 +69,13 @@ $(document).ready(() => {
 
     })
 
+    // pagination
     $("#users-list").on("click", 'li', (e) => {
         e.preventDefault();
         let page = e.target.closest("li");
-        pageNumber = $(page).data("page");
-        let params = sortData.split('_')
+        let pageNumber = $(page).data("page");
+        localStorage.setItem("pageNumber", pageNumber);
+        let params = localStorage.getItem("sortData").split('_'); 
         let searchData = $(".search input").val()
         Api.get(`/user/all-users/search?page=${pageNumber}&column=${params[0]}&direction=${params[1]}&search_data=${searchData}`)
             .then((res) => {
@@ -78,8 +87,11 @@ $(document).ready(() => {
                 $(`span.${params[0]}`).show();
             })
     })
+
+    // sort
     $("#users-list").on("click", 'thead th', function (e) {
         let column = $(this).data("name");
+        sortData = localStorage.getItem("sortData");
         if (sortData.split('_')[0] === column) {
             let tempData = sortData.split('_');
             if (tempData[1] === 'down') {
@@ -96,8 +108,9 @@ $(document).ready(() => {
             sortData = tempData.join('_');
         }
         let params = sortData.split('_')
+        localStorage.setItem("sortData", sortData)
         let searchData = $(".search input").val();
-
+        let pageNumber = localStorage.getItem("pageNumber");
         Api.get(`/user/all-users/search?column=${params[0]}&direction=${params[1]}&page=${pageNumber}&search_data=${searchData}`)
             .then((res) => {
                 return res.text()
@@ -119,7 +132,7 @@ $(document).ready(() => {
 
     function searchUsers() {
         let data = $(".search input").val();
-        sortData = "firstName_down";
+        localStorage.setItem("sortData", "firstName_down");
         Api.get(`/user/all-users/search?search_data=${data}`)
             .then((res) => {
                 return res.text()
@@ -127,7 +140,7 @@ $(document).ready(() => {
             .then((res) => {
                 $("#users-list").html(res);
                 $("thead span").hide();
-                $(`span.${sortData.split('_')[0]}`).show();
+                $(`span.${localStorage.getItem("sortData").split('_')[0]}`).show();
             })
     }
 });

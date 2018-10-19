@@ -1,8 +1,8 @@
 const bodyParser = require('body-parser');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken'); // аутентификация по JWT для hhtp
-const jwtsecret = "mysecretkey"; // ключ для подписи JWT
 const db = require('../models')
+const config = require('../config');
 
 module.exports = (router) => {
 
@@ -19,7 +19,7 @@ module.exports = (router) => {
             res.render("signUp.hbs");
         })
         .post((req, res) => {
-            let hash = bcrypt.hashSync(req.body.pass, 10);
+            let hash = bcrypt.hashSync(req.body.pass, config.salt);
             db.user.create({
                 firstName: req.body.firstName,
                 lastName: req.body.lastName,
@@ -47,7 +47,7 @@ module.exports = (router) => {
                             id: user.dataValues.id,
                             email: user.dataValues.email
                         }
-                        const token = jwt.sign(payload, jwtsecret);
+                        const token = jwt.sign(payload, config.secretJWT);
                         return res.json({ message: "ok", token: token, user: user.dataValues });
                     } else {
                         return res.status(401).send('Incorrect password');
